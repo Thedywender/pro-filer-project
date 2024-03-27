@@ -21,7 +21,8 @@ def test_show_preview_with_files_and_dirs(capsys):
     captured = capsys.readouterr()
     expected_output = (
         "Found 3 files and 2 directories\n"
-        "First 5 files: ['src/__init__.py', 'src/app.py', 'src/utils/__init__.py']\n"
+        "First 5 files: ['src/__init__.py', 'src/app.py', "
+        "'src/utils/__init__.py']\n"
         "First 5 directories: ['src', 'src/utils']\n"
     )
     assert captured.out == expected_output
