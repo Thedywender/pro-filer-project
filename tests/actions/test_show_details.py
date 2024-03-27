@@ -1,5 +1,5 @@
-from unittest.mock import patch
 from pro_filer.actions.main_actions import show_details  # NOQA
+from datetime import date
 
 
 def test_show_details_withou_path(capsys):
@@ -9,21 +9,39 @@ def test_show_details_withou_path(capsys):
     assert captured.out == "File '????' does not exist\n"
 
 
-def test_show_details_with_valid_path(capsys):
-    context = {"base_path": "/home/trybe/Downloads/Trybe_logo.png"}
+def test_show_details_with_valid_path(capsys, tmp_path):
+    file_path = tmp_path / "Trybe_logo.png"
+    file_path.write_text("Dummy content")
 
-    with patch("os.path.exists", return_value=True):
-        with patch("os.path.getsize", return_value=22438):
-            with patch("os.path.isdir", return_value=False):
-                with patch("os.path.getmtime", return_value=1689315018.0):
-                    show_details(context)
+    context = {"base_path": str(file_path)}
+
+    show_details(context)
 
     captured = capsys.readouterr()
     expected_output = (
-        "File name: Trybe_logo.png\n"
-        "File size in bytes: 22438\n"
-        "File type: file\n"
-        "File extension: .png\n"
-        "Last modified date: 2023-07-14\n"
+        f"File name: Trybe_logo.png\n"
+        f"File size in bytes: {file_path.stat().st_size}\n"
+        f"File type: file\n"
+        f"File extension: .png\n"
+        f"Last modified date: {date.fromtimestamp(file_path.stat().st_mtime).isoformat()}\n"
     )
     assert captured.out == expected_output
+
+
+def test_show_details_with_file_without_extension(capsys, tmp_path):
+    file_path = tmp_path / "Trybe_logo"
+    file_path.write_text("Dummy content")
+
+    context = {"base_path": str(file_path)}
+
+    show_details(context)
+
+    captured = capsys.readouterr()
+    expected_output = (
+        f"File name: Trybe_logo\n"
+        f"File size in bytes: {file_path.stat().st_size}\n"
+        f"File type: file\n"
+        f"File extension: [no extension]\n"
+        f"Last modified date: {date.fromtimestamp(file_path.stat().st_mtime).isoformat()}\n"
+    )
+    assert "[no extension]" in captured.out
